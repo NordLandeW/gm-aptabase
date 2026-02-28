@@ -1,5 +1,6 @@
 
 #macro __APTABASE_SDK_VERSION "1.0.0"
+#macro __APTABASE_MAX_BATCH_SIZE_LIMIT 25
 
 function __AptabaseEvent(eventName, props) constructor {
     static pad2 = function(value) {
@@ -191,7 +192,7 @@ function __AptabaseClient() constructor {
     appKey = "";
     appVersion = string(APTABASE_APP_VERSION);
     baseURL = APTABASE_BASE_URL;
-    maxBatchSize = APTABASE_MAX_BATCH_SIZE;
+    maxBatchSize = min(APTABASE_MAX_BATCH_SIZE, __APTABASE_MAX_BATCH_SIZE_LIMIT);
     flushInterval = APTABASE_FLUSH_INTERVAL;
     isDebug = bool(APTABASE_IS_DEBUG);
 
@@ -208,7 +209,13 @@ function __AptabaseClient() constructor {
     sessionID = new_session_id();
 
     static get_host_from_app_key = function(appKey) {
-        return string_pos("EU", appKey) > 0 ? "https://eu.aptabase.com" : "https://us.aptabase.com";
+        if(string_pos("SH", appKey) > 0) {
+            return APTABASE_SH_HOST;
+        }
+        if(string_pos("EU", appKey) > 0) {
+            return APTABASE_EU_HOST;
+        }
+        return APTABASE_US_HOST;
     }
 
     static send_request = function(payload) {
@@ -251,7 +258,7 @@ function __AptabaseClient() constructor {
     }
 
     static flush = function() {
-        var eventsToSend = min(array_length(eventQueue), maxBatchSize);
+        var eventsToSend = min(array_length(eventQueue), min(maxBatchSize, __APTABASE_MAX_BATCH_SIZE_LIMIT));
         if(eventsToSend <= 0) return;
 
         var sentEvents = [];
@@ -272,19 +279,19 @@ function __AptabaseClient() constructor {
     static apply_config = function(config) {
         if(!is_struct(config)) return;
 
-        if(variable_struct_exists(config, "appKey"))
+        if(variable_struct_exists(config, "app_key"))
             appKey = config[? "app_key"];
-        if(variable_struct_exists(config, "appVersion"))
+        if(variable_struct_exists(config, "app_version"))
             appVersion = string(config[? "app_version"]);
-        if(variable_struct_exists(config, "baseURL"))
+        if(variable_struct_exists(config, "base_url"))
             baseURL = config[? "base_url"];
-        if(variable_struct_exists(config, "maxBatchSize"))
-            maxBatchSize = config[? "max_batch_size"];
-        if(variable_struct_exists(config, "flushInterval")) {
+        if(variable_struct_exists(config, "max_batch_size"))
+            maxBatchSize = min(config[? "max_batch_size"], __APTABASE_MAX_BATCH_SIZE_LIMIT);
+        if(variable_struct_exists(config, "flush_interval")) {
             flushInterval = config[? "flush_interval"];
             start();
         }
-        if(variable_struct_exists(config, "isDebug"))
+        if(variable_struct_exists(config, "is_debug"))
             isDebug = bool(config[? "is_debug"]);
     }
 
