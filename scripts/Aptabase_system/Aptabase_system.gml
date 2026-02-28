@@ -189,11 +189,11 @@ function __AptabaseSystem() constructor {
 
     // Config.
     appKey = "";
-    appVersion = APTABASE_APP_VERSION;
+    appVersion = string(APTABASE_APP_VERSION);
     baseURL = APTABASE_BASE_URL;
     maxBatchSize = APTABASE_MAX_BATCH_SIZE;
     flushInterval = APTABASE_FLUSH_INTERVAL;
-    isDebug = APTABASE_IS_DEBUG;
+    isDebug = bool(APTABASE_IS_DEBUG);
 
     // Timesource handle.
     flushEventHandle = undefined;
@@ -272,15 +272,20 @@ function __AptabaseSystem() constructor {
     static apply_config = function(config) {
         if(!is_struct(config)) return;
 
-        if(variable_struct_exists(config, "appKey")) appKey = config[? "app_key"];
-        if(variable_struct_exists(config, "appVersion")) appVersion = config[? "app_version"];
-        if(variable_struct_exists(config, "baseURL")) baseURL = config[? "base_url"];
-        if(variable_struct_exists(config, "maxBatchSize")) maxBatchSize = config[? "max_batch_size"];
+        if(variable_struct_exists(config, "appKey"))
+            appKey = config[? "app_key"];
+        if(variable_struct_exists(config, "appVersion"))
+            appVersion = string(config[? "app_version"]);
+        if(variable_struct_exists(config, "baseURL"))
+            baseURL = config[? "base_url"];
+        if(variable_struct_exists(config, "maxBatchSize"))
+            maxBatchSize = config[? "max_batch_size"];
         if(variable_struct_exists(config, "flushInterval")) {
             flushInterval = config[? "flush_interval"];
             start();
         }
-        if(variable_struct_exists(config, "isDebug")) isDebug = config[? "is_debug"];
+        if(variable_struct_exists(config, "isDebug"))
+            isDebug = bool(config[? "is_debug"]);
     }
 
     static is_request_existed = function(id) {
