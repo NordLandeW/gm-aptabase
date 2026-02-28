@@ -200,6 +200,9 @@ function __AptabaseClient() constructor {
     flushEventHandle = undefined;
 
     static new_session_id = function() {
+        if(APTABASE_RANDOMIZE)
+            randomize();
+
         var nowUTC = date_inc_minute(date_current_datetime(), -date_get_timezone());
         var unixTimestamp = floor((nowUTC - 25569) * 86400);
         var randomNumber = irandom_range(0, 99999999);
