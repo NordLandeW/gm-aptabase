@@ -130,11 +130,11 @@ function __AptabaseEvent(eventName, props) constructor {
     var resolvedSessionID = "";
     var resolvedIsDebug = false;
     var resolvedAppVersion = APTABASE_APP_VERSION;
-    var aptabaseSystem = global.__aptabaseSystem;
-    if(is_struct(aptabaseSystem)) {
-        resolvedSessionID = aptabaseSystem.sessionID;
-        resolvedIsDebug = aptabaseSystem.isDebug;
-        resolvedAppVersion = aptabaseSystem.appVersion;
+    var aptabaseCli = global.__aptabaseClient;
+    if(is_struct(aptabaseCli)) {
+        resolvedSessionID = aptabaseCli.sessionID;
+        resolvedIsDebug = aptabaseCli.isDebug;
+        resolvedAppVersion = aptabaseCli.appVersion;
     }
 
     var resolvedProps = sanitize_props(props, resolvedIsDebug);
@@ -178,8 +178,8 @@ function __AptabaseSendingEvent(requestID, events) constructor {
     self.events = events;
 }
 
-function __AptabaseSystem() constructor {
-    global.__aptabaseSystem = self;
+function __AptabaseClient() constructor {
+    global.__aptabaseClient = self;
 
     // Event management.
     eventQueue = [];
@@ -316,7 +316,7 @@ function __AptabaseSystem() constructor {
         if(!is_undefined(flushEventHandle)) stop();
         flushEventHandle = call_later(
             flushInterval, time_source_units_seconds, function() {
-                global.__aptabaseSystem.flush();
+                global.__aptabaseClient.flush();
             }, true
         );
     }
@@ -335,4 +335,4 @@ function __AptabaseSystem() constructor {
 }
 
 
-new __AptabaseSystem();
+new __AptabaseClient();
