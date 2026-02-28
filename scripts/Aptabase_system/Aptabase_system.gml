@@ -188,7 +188,7 @@ function __AptabaseSystem() constructor {
     sendingEvents = {};
 
     // Config.
-    appKey = APTABASE_APP_KEY;
+    appKey = "";
     appVersion = APTABASE_APP_VERSION;
     baseURL = APTABASE_BASE_URL;
     maxBatchSize = APTABASE_MAX_BATCH_SIZE;
