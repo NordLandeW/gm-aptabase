@@ -287,6 +287,13 @@ function __AptabaseClient() constructor {
     }
 
     static flush = function() {
+        if(string_length(string_trim(appKey)) <= 0) {
+            if(isDebug) {
+                show_debug_message("Aptabase flush aborted: App Key is not configured. Ensure you've called aptabase_init() with a valid key.");
+            }
+            return;
+        }
+
         var eventsToSend = min(array_length(eventQueue), min(maxBatchSize, __APTABASE_MAX_BATCH_SIZE_LIMIT));
         if(eventsToSend <= 0) return;
 

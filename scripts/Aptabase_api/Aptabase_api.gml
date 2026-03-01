@@ -1,6 +1,11 @@
 
 /// @description Initialize the Aptabase client with your app key and optional configuration.
 function aptabase_init(appKey, config = undefined) {
+    if(is_undefined(appKey) || !is_string(appKey) || string_length(string_trim(appKey)) <= 0) {
+        show_debug_message("Aptabase Error: Invalid App Key provided to aptabase_init. Please ensure you use a valid App Key from your Aptabase project.");
+        return;
+    }
+
     global.__aptabaseClient.appKey = appKey;
     global.__aptabaseClient.apply_config(config);
 
