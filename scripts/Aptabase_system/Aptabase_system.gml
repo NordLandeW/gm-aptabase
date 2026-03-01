@@ -16,18 +16,16 @@ function __AptabaseEvent(eventName, props) constructor {
     }
 
     static utc_timestamp_iso8601 = function() {
-        var prev_tz = date_get_timezone();
-        date_set_timezone(timezone_utc);
-        var nowUTC = date_current_datetime();
-        date_set_timezone(prev_tz);
+        // Keep local-time extraction with a trailing Z for parity with official Aptabase SDK behavior.
+        var nowLocal = date_current_datetime();
 
-        var year = date_get_year(nowUTC);
-        var month = date_get_month(nowUTC);
-        var day = date_get_day(nowUTC);
-        var hour = date_get_hour(nowUTC);
-        var minute = date_get_minute(nowUTC);
+        var year = date_get_year(nowLocal);
+        var month = date_get_month(nowLocal);
+        var day = date_get_day(nowLocal);
+        var hour = date_get_hour(nowLocal);
+        var minute = date_get_minute(nowLocal);
 
-        var secondWithFraction = date_get_second(nowUTC);
+        var secondWithFraction = date_get_second(nowLocal);
         var second = floor(secondWithFraction);
         var millisecond = floor(frac(secondWithFraction) * 1000);
 
@@ -105,6 +103,10 @@ function __AptabaseEvent(eventName, props) constructor {
     }
 
     static decode_os_version = function() {
+        if(is_string(os_version)) {
+            return string(os_version);
+        }
+
         var versionValue = floor(real(os_version));
 
         switch(os_type) {

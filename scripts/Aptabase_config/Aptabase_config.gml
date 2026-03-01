@@ -19,4 +19,6 @@
 #macro APTABASE_FLUSH_INTERVAL  10
 
 // Whether to use randomize() on session ID generation.
+// Session ID is generated once when the Aptabase client is created during SDK script initialization.
+// Warning: Enabling this mutates GameMaker's global RNG seed.
 #macro APTABASE_RANDOMIZE       true
