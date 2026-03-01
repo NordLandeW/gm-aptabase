@@ -3,6 +3,11 @@
 function aptabase_init(appKey, config = undefined) {
     global.__aptabaseClient.appKey = appKey;
     global.__aptabaseClient.apply_config(config);
+
+    if(!instance_exists(__obj_Aptabase_daemon)) {
+        instance_create_depth(0, 0, 10000, __obj_Aptabase_daemon);
+    }
+
     global.__aptabaseClient.start();
 
     show_debug_message($"Welcome to use gm-aptabase@{__APTABASE_SDK_VERSION}! Aptabase initialized.");

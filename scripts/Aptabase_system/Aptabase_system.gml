@@ -130,6 +130,39 @@ function __AptabaseEvent(eventName, props) constructor {
         }
     }
 
+    static get_cached_system_profile = function() {
+        static cachedSystemProfile = undefined;
+        if(is_struct(cachedSystemProfile)) {
+            return cachedSystemProfile;
+        }
+
+        var resolvedLocale = get_locale_code();
+        var resolvedOsName = os_type_to_name();
+        var resolvedOsVersion = "";
+        var resolvedDeviceModel = "";
+
+        var osInfo = os_get_info();
+        if(ds_exists(osInfo, ds_type_map)) {
+            resolvedOsName = map_get_first_string(osInfo, ["os_name", "system_name", "platform", "name"], resolvedOsName);
+            resolvedOsVersion = map_get_first_string(osInfo, ["os_version_string", "version_string", "system_version", "os_version", "version", "release", "build"], resolvedOsVersion);
+            resolvedDeviceModel = map_get_first_string(osInfo, ["device_model", "model", "hardware_model", "machine", "hardware", "device", "product", "manufacturer"], resolvedDeviceModel);
+
+            ds_map_destroy(osInfo);
+        }
+
+        if(string_length(resolvedOsVersion) <= 0) resolvedOsVersion = decode_os_version();
+        if(string_length(resolvedDeviceModel) <= 0) resolvedDeviceModel = "unknown";
+
+        cachedSystemProfile = {
+            locale: resolvedLocale,
+            osName: resolvedOsName,
+            osVersion: resolvedOsVersion,
+            deviceModel: resolvedDeviceModel
+        };
+
+        return cachedSystemProfile;
+    }
+
     var resolvedSessionID = "";
     var resolvedIsDebug = false;
     var resolvedAppVersion = APTABASE_APP_VERSION;
@@ -141,32 +174,16 @@ function __AptabaseEvent(eventName, props) constructor {
     }
 
     var resolvedProps = sanitize_props(props, resolvedIsDebug);
-
-    var readableLocale = get_locale_code();
-    var readableOsName = os_type_to_name();
-    var readableOsVersion = "";
-    var readableDeviceModel = "";
-
-    var osInfo = os_get_info();
-    if(ds_exists(osInfo, ds_type_map)) {
-        readableOsName = map_get_first_string(osInfo, ["os_name", "system_name", "platform", "name"], readableOsName);
-        readableOsVersion = map_get_first_string(osInfo, ["os_version_string", "version_string", "system_version", "os_version", "version", "release", "build"], readableOsVersion);
-        readableDeviceModel = map_get_first_string(osInfo, ["device_model", "model", "hardware_model", "machine", "hardware", "device", "product", "manufacturer"], readableDeviceModel);
-
-        ds_map_destroy(osInfo);
-    }
-
-    if(string_length(readableOsVersion) <= 0) readableOsVersion = decode_os_version();
-    if(string_length(readableDeviceModel) <= 0) readableDeviceModel = "unknown";
+    var systemProfile = get_cached_system_profile();
 
     self.timestamp = utc_timestamp_iso8601();
     self.sessionId = resolvedSessionID;
     self.eventName = eventName;
     self.systemProps = {
-        locale: readableLocale,
-        osName: readableOsName,
-        osVersion: readableOsVersion,
-        deviceModel: readableDeviceModel,
+        locale: systemProfile.locale,
+        osName: systemProfile.osName,
+        osVersion: systemProfile.osVersion,
+        deviceModel: systemProfile.deviceModel,
         isDebug: resolvedIsDebug,
         appVersion: resolvedAppVersion,
         sdkVersion: $"gm-aptabase@{__APTABASE_SDK_VERSION}"
@@ -198,7 +215,11 @@ function __AptabaseClient() constructor {
         if(APTABASE_RANDOMIZE)
             randomize();
 
-        var nowUTC = date_inc_minute(date_current_datetime(), -date_get_timezone());
+        var prev_tz = date_get_timezone();
+        date_set_timezone(timezone_utc);
+        var nowUTC = date_current_datetime();
+        date_set_timezone(prev_tz);
+
         var unixTimestamp = floor((nowUTC - 25569) * 86400);
         var randomNumber = irandom_range(0, 99999999);
         return string(unixTimestamp) + string(randomNumber);
@@ -341,11 +362,6 @@ function __AptabaseClient() constructor {
             flushEventHandle = undefined;
         }
     }
-
-    // Create daemon object.
-    call_later(1, time_source_units_frames, function() {
-        instance_create_depth(0, 0, 10000, __obj_Aptabase_daemon);
-    });
 }
 
 
