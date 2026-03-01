@@ -21,7 +21,7 @@ A lightweight Aptabase SDK for GameMaker (2024.2+).
        app_version: "1.2.0",      // Override game version
        flush_interval: 15,        // Auto flush interval in seconds
        max_batch_size: 10,        // Max events per request
-       is_debug: true,            // Enable debug logging
+       is_debug: true,            // Enable debug environment
        base_url: "https://..."    // Optional: for self-hosted tracking
    });
    ```
