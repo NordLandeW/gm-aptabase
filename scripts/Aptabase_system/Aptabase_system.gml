@@ -174,13 +174,6 @@ function __AptabaseEvent(eventName, props) constructor {
     self.props = resolvedProps;
 }
 
-function __AptabaseSendingEvent(requestID, events) constructor {
-    self.requestID = requestID;
-    
-    /// @type {Array<Struct.__AptabaseEvent>} 
-    self.events = events;
-}
-
 function __AptabaseClient() constructor {
     global.__aptabaseClient = self;
 
@@ -214,14 +207,15 @@ function __AptabaseClient() constructor {
     sessionID = new_session_id();
 
     static get_host_from_app_key = function(appKey) {
-        if(string_pos("SH", appKey) > 0) {
+        var prefix = string_copy(appKey, 1, 5);
+        if(prefix == "A-SH-") {
             if(APTABASE_SH_HOST == "") {
                 show_debug_message("Aptabase warning: Detected A-SH- type App Key but no self-hosted host is configured. Please set APTABASE_SH_HOST in Aptabase_config.gml or provide base_url in config when initializing.");
                 return APTABASE_US_HOST;
             }
             return APTABASE_SH_HOST;
         }
-        if(string_pos("EU", appKey) > 0) {
+        if(prefix == "A-EU-") {
             return APTABASE_EU_HOST;
         }
         return APTABASE_US_HOST;
@@ -261,8 +255,11 @@ function __AptabaseClient() constructor {
         return requestID;
     }
 
-    /// @param {Struct.__AptabaseEvent} event 
+    /// @param {Struct.__AptabaseEvent} event
     static push_event = function(event) {
+        if(array_length(eventQueue) >= 10000) {
+            array_delete(eventQueue, 0, 1);
+        }
         array_push(eventQueue, event);
     }
 
@@ -278,7 +275,8 @@ function __AptabaseClient() constructor {
 
         var requestID = send_request(json_stringify(sentEvents));
         if(requestID >= 0) {
-            sendingEvents[$ requestID] = sentEvents;
+            var reqIdStr = string(requestID);
+            sendingEvents[$ reqIdStr] = sentEvents;
             array_delete(eventQueue, 0, eventsToSend);
         } else if(isDebug) {
             show_debug_message("Aptabase flush aborted: requestID < 0, events kept in queue.");
