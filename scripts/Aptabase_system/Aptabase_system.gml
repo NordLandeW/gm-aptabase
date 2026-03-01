@@ -16,8 +16,10 @@ function __AptabaseEvent(eventName, props) constructor {
     }
 
     static utc_timestamp_iso8601 = function() {
-        var nowLocal = date_current_datetime();
-        var nowUTC = date_inc_minute(nowLocal, -date_get_timezone());
+        var prev_tz = date_get_timezone();
+        date_set_timezone(timezone_utc);
+        var nowUTC = date_current_datetime();
+        date_set_timezone(prev_tz);
 
         var year = date_get_year(nowUTC);
         var month = date_get_month(nowUTC);
@@ -213,6 +215,10 @@ function __AptabaseClient() constructor {
 
     static get_host_from_app_key = function(appKey) {
         if(string_pos("SH", appKey) > 0) {
+            if(APTABASE_SH_HOST == "") {
+                show_debug_message("Aptabase warning: Detected A-SH- type App Key but no self-hosted host is configured. Please set APTABASE_SH_HOST in Aptabase_config.gml or provide base_url in config when initializing.");
+                return APTABASE_US_HOST;
+            }
             return APTABASE_SH_HOST;
         }
         if(string_pos("EU", appKey) > 0) {
@@ -283,19 +289,19 @@ function __AptabaseClient() constructor {
         if(!is_struct(config)) return;
 
         if(variable_struct_exists(config, "app_key"))
-            appKey = config[? "app_key"];
+            appKey = config[$ "app_key"];
         if(variable_struct_exists(config, "app_version"))
-            appVersion = string(config[? "app_version"]);
+            appVersion = string(config[$ "app_version"]);
         if(variable_struct_exists(config, "base_url"))
-            baseURL = config[? "base_url"];
+            baseURL = config[$ "base_url"];
         if(variable_struct_exists(config, "max_batch_size"))
-            maxBatchSize = min(config[? "max_batch_size"], __APTABASE_MAX_BATCH_SIZE_LIMIT);
+            maxBatchSize = min(config[$ "max_batch_size"], __APTABASE_MAX_BATCH_SIZE_LIMIT);
         if(variable_struct_exists(config, "flush_interval")) {
-            flushInterval = config[? "flush_interval"];
+            flushInterval = config[$ "flush_interval"];
             start();
         }
         if(variable_struct_exists(config, "is_debug"))
-            isDebug = bool(config[? "is_debug"]);
+            isDebug = bool(config[$ "is_debug"]);
     }
 
     static is_request_existed = function(id) {
